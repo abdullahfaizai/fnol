@@ -1,0 +1,28 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: meridian-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Read from a root .env file (see .env.example). Leave OPENAI_API_KEY
+      # blank to run the deterministic scripted agent.
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o}
+      - USE_MOCK_LLM=${USE_MOCK_LLM:-false}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Browser connects to the backend on the host's port 8000.
+        VITE_WS_BASE: ${VITE_WS_BASE:-ws://localhost:8000}
+    container_name: meridian-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
